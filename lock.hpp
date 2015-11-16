@@ -13,6 +13,12 @@ int sem_conn = -1;
 int sem_pipe = -1;
 
 void lock_init(){
+  if (sem_conn < 0) {
+    if ( (sem_conn = sem_create(SEMKEY_CONNECT, 1)) < 0) err_sys("sem_create error for connection lock");
+  }
+  if (sem_pipe < 0) {
+    if ( (sem_pipe = sem_create(SEMKEY_PIPE, 1)) < 0) err_sys("sem_create error for pipe lock");
+  }
   
 }
 void lock_clean_up(){

@@ -109,15 +109,17 @@ int sem_open(key_t key)
 void sem_close(int id)
 {
   register int semval;
-  // The following semop() first gets a lock on the semaphore,
-  // then increments [1] - the process counter.
-  if (semop(id, &op_close[0], 3) < 0) err_sys("can't semop");
-  // if this is the last reference to the semaphore, remove this.
-  if ( (semval = semctl(id, 1, GETVAL, 0)) < 0) err_sys("can't GETVAL");
-  if (semval > BIGCOUNT) err_dump("sem[1] > BIGCOUNT");
-  else if (semval == BIGCOUNT) sem_rm(id);
-  else
-    if (semop(id, &op_unlock[0], 1) < 0) err_sys("can't unlock"); /* unlock */
+  if(id>=0){
+    // The following semop() first gets a lock on the semaphore,
+    // then increments [1] - the process counter.
+    if (semop(id, &op_close[0], 3) < 0) err_sys("can't semop");
+    // if this is the last reference to the semaphore, remove this.
+    if ( (semval = semctl(id, 1, GETVAL, 0)) < 0) err_sys("can't GETVAL");
+    if (semval > BIGCOUNT) err_dump("sem[1] > BIGCOUNT");
+    else if (semval == BIGCOUNT) sem_rm(id);
+    else
+      if (semop(id, &op_unlock[0], 1) < 0) err_sys("can't unlock"); /* unlock */
+  }
 }
 
 void sem_op(int id, int value)

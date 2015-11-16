@@ -8,6 +8,7 @@
 
 #include "lib.hpp"
 #include "shell.hpp"
+#include "lock.hpp"
 
 //#define CONSOLE
 
@@ -16,13 +17,36 @@
 
 
 using std::cout;
+using std::cerr;
 using std::cin;
 using std::endl;
 using std::string;
 using std::atoi;
 using std::getline;
 
+void clean_up(){
+  cerr << "Cleaning up..." << endl;
+  lock_clean_up();
+}
+Sigfunc old_intr_handler;
+
+// Signal handler for SIGINT
+void handle_sigint(int sig) {
+  clean_up();
+  cerr << "Exiting..." << endl;
+  exit(1);
+}
+
+void register_sigint(){
+  old_intr_handler = signal(SIGINT,handle_sigint);
+}
+void restore_sigint(){
+  signal(SIGINT,old_intr_handler);
+}
 int main(int argc,char** argv){
+  register_sigint();
+  register_sigchld();
+  lock_init();
   // change to base path
   chdir(BASE_DIR);
 #ifndef CONSOLE
@@ -36,7 +60,6 @@ int main(int argc,char** argv){
   }
   cout << "Listen to port:" << port << endl;
   // start program
-  register_sigchld();
   int sockfd,clientfd;
   socklen_t cli_addr_len;
   sockaddr_in cli_addr,serv_addr;
@@ -65,6 +88,7 @@ int main(int argc,char** argv){
       debug("Accept error!");
     }
     if((pid=fork())<0){
+      clean_up();
       err_abort("Fork error!");
     }
     else if(pid>0){
@@ -74,6 +98,7 @@ int main(int argc,char** argv){
     else{
       // child
       restore_sigchld();
+      restore_sigint();
       close(sockfd); 
       try{
       run_shell(clientfd,clientfd,clientfd);
@@ -85,6 +110,7 @@ int main(int argc,char** argv){
   }
 #else
   run_shell();
+  clean_up();
 #endif
 }
 
