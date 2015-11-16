@@ -22,7 +22,11 @@ TEST_FILES.each do |dir,names|
     FileUtils.mkdir_p 'tmp'
     `./client #{ip} #{port1} #{path} > tmp/#{port1}_#{name}.out`
     `./client #{ip} #{port2} #{path} > tmp/#{port2}_#{name}.out`
-    `diff tmp/#{port1}_#{name}.out tmp/#{port2}_#{name}.out`
+    IO.popen "diff tmp/#{port1}_#{name}.out tmp/#{port2}_#{name}.out" do |result|
+      while result.gets
+      puts $_
+      end
+    end
   end
 end
 
