@@ -13,7 +13,7 @@
 
 #include "pipe.hpp"
 
-//#define DEBUG
+#define DEBUG
 
 #define FD_STDIN 0
 #define FD_STDOUT 1
@@ -34,7 +34,10 @@ Sigfunc old_handler;
 
 template<class T>
 int debug(const T& val,bool nl = true){
-  cerr << ":::DEBUG:::" << val;
+  if(nl){
+    cerr << ":::DEBUG:::";
+  }
+  cerr << val;
   if(nl){
     cerr << endl;  
   }

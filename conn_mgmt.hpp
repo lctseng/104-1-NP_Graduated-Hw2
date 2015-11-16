@@ -4,7 +4,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <arpa/inet.h>
 
+#include "lib.hpp"
 
 #define CONN_MGMT_KEY 8001
 
@@ -13,6 +15,9 @@
 #define MAX_MSG_LEN 1024
 #define MAX_NICK_LEN 1024
 
+
+using std::cerr;
+using std::endl;
 
 class ConnMsgEntry{
 public:
@@ -39,12 +44,21 @@ public:
     nick[0] = '\0';
   }
 
-  bool isValid() const{
+  bool is_valid() const{
     return fd >= 0;
+  }
+
+  void disconnect(){
+#ifdef DEBUG
+    cerr << "Client " << id << " from " << ip << "/" << port << " disconnected" << endl;
+#endif
+    fd = -1;
   }
 
   ConnMsgQueue msg_q;
   char nick[MAX_NICK_LEN];
+  char ip[20];
+  unsigned short port;
   int fd;
   int id;
 };
@@ -52,12 +66,35 @@ public:
 class ConnMgmt{
 public:
   ConnMgmt()
-  :max_id(-1)
+  :max_id(0)
   {
     for(int i=0;i<MAX_CLIENT;i++){
-      clients[i].id = i;
+      clients[i].id = i+1;
     }
     
+  }
+  // add new client
+  ConnClientEntry& register_new_client(int fd,sockaddr_in* cli_addr){
+    // search empty slot
+    ConnClientEntry& slot = find_empty_slot();
+    // fill info
+    inet_ntop(AF_INET,&cli_addr->sin_addr,slot.ip,sizeof(slot.ip));
+    slot.port = ntohs(cli_addr->sin_port);
+    slot.fd = fd;
+    // debug
+#ifdef DEBUG
+    cerr << "[Server] New client from: " << slot.ip << "/" << slot.port << ", client id = " << slot.id << endl;
+#endif
+    return slot;
+  }
+  // find empty slot
+  ConnClientEntry& find_empty_slot(){
+    for(int i=0;i<=max_id;i++){
+      if(!clients[i].is_valid()){
+        max_id = std::max(max_id,i+1);
+        return clients[i];
+      }   
+    }
   }
 
   int max_id;

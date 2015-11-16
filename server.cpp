@@ -92,6 +92,7 @@ int main(int argc,char** argv){
     if(clientfd<0){
       debug("Accept error!");
     }
+    ConnClientEntry& client_e = p_mgmt->register_new_client(clientfd,&cli_addr);
     if((pid=fork())<0){
       clean_up();
       err_abort("Fork error!");
@@ -110,6 +111,8 @@ int main(int argc,char** argv){
       }catch(std::regex_error e){
         debug(e.code()== std::regex_constants::error_escape);
       }
+      client_e.disconnect();
+      close(clientfd);
       exit(0);
     }
   }
