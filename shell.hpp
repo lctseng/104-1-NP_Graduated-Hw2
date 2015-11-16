@@ -90,16 +90,24 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
             }
           }
         }
+        int pub_write_pipe = -1;
+        int pub_read_pipe = -1;
+        cmd_line = src_cmd_line;
+        // read pub pipe
+        if(regex_search(cmd_line,match,regex("<([^!| \t\n]+)"))){
+          // for public pipe
+          pub_read_pipe = std::stoi(match[1]);
+          cmd_line = string_strip(match.prefix()) + " " + string(match.suffix());
+        }
 
-        // File name
+        // Writing File name and write pub pipe
         string filename;
         const char* filemode = "";
-        int pub_pipe = -1;
-        if(regex_search(src_cmd_line,match,regex("(>+)(\\s*)([^!| \t\n]+)"))){
+        if(regex_search(cmd_line,match,regex("(>+)(\\s*)([^!| \t\n]+)"))){
           string sep = match[2];
           if(sep.empty()){
             // for public pipe
-            pub_pipe = std::stoi(match[3]);
+            pub_write_pipe = std::stoi(match[3]);
           }
           else{
             string mode_str = string_strip(match[1]);
@@ -112,9 +120,6 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
             filename = string_strip(match[3]);
           }
           cmd_line = string_strip(match.prefix()) + " " + string(match.suffix());
-        }
-        else{
-          cmd_line = src_cmd_line;
         }
         // arguments
         string::size_type space_pos = cmd_line.find_first_of(" \t");
@@ -130,9 +135,16 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
 #ifdef DEBUG
         debug("cmd:"+cmd);
         debug("arg:"+arg_line);
-        stringstream ss;
-        ss << "public pipe:" << pub_pipe;
-        debug(ss.str());
+         
+        stringstream ss1;
+        ss1 << "public write pipe:" << pub_write_pipe;
+        debug(ss1.str());
+
+
+        stringstream ss2;
+        ss2 << "public read pipe:" << pub_read_pipe;
+        debug(ss2.str());
+
         debug("filename:"+filename);
         debug("filemode:"+string(filemode));
         debug("suffix:"+suffix);
