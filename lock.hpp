@@ -12,6 +12,14 @@
 int sem_conn = -1;
 int sem_pipe = -1;
 
+void lock_init(){
+  
+}
+void lock_clean_up(){
+  sem_close(sem_conn);
+  sem_close(sem_pipe);
+}
+
 // conn lock
 void conn_lock()
 {

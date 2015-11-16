@@ -3,7 +3,7 @@
 #include "lock.hpp"
 #include "unistd.h"
 
-#define RUN 100
+#define RUN 5
 using namespace std;
 
 
@@ -23,6 +23,7 @@ int read_n(){
 
 int main(){
   int n = 0;
+  lock_init();
   write_n(0);
   pid_t pid = fork();
   for(int i=0;i<RUN;i++){
@@ -32,4 +33,5 @@ int main(){
     write_n(n+1);
     pipe_unlock();
   }
+  lock_clean_up();
 }
