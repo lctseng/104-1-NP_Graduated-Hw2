@@ -9,6 +9,7 @@
 #include "lib.hpp"
 #include "shell.hpp"
 #include "lock.hpp"
+#include "conn_mgmt.hpp"
 
 //#define CONSOLE
 
@@ -24,9 +25,12 @@ using std::string;
 using std::atoi;
 using std::getline;
 
+// cleanup, include all ipc-related item 
+// should called by master thread only once
 void clean_up(){
   cerr << "Cleaning up..." << endl;
   lock_clean_up();
+  conn_mgmt_cleanup();
 }
 Sigfunc old_intr_handler;
 
@@ -47,6 +51,7 @@ int main(int argc,char** argv){
   register_sigint();
   register_sigchld();
   lock_init();
+  conn_mgmt_init();
   // change to base path
   chdir(BASE_DIR);
 #ifndef CONSOLE

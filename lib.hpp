@@ -33,8 +33,11 @@ typedef void (*Sigfunc)(int);
 Sigfunc old_handler;
 
 template<class T>
-int debug(const T& val){
-  cerr << ":::DEBUG:::" << val << endl;
+int debug(const T& val,bool nl = true){
+  cerr << ":::DEBUG:::" << val;
+  if(nl){
+    cerr << endl;  
+  }
 }
 
 void err_abort(const string& msg){

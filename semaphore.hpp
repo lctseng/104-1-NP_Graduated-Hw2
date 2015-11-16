@@ -69,7 +69,7 @@ int sem_create(key_t key, int initval)
   if (key == IPC_PRIVATE) return(-1); /* not intended for private semaphores */
   else if (key == (key_t) -1) return(-1); /* probably an ftok() error by caller */
 again:
-  if ( (id = semget(key, 3, 0666 | IPC_CREAT)) < 0) return(-1);
+  if ( (id = semget(key, 3, 0600 | IPC_CREAT)) < 0) return(-1);
   if (semop(id, &op_lock[0], 2) < 0) {
     if (errno == EINVAL) goto again;
     err_sys("can't lock");
