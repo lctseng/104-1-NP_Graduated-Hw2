@@ -6,6 +6,7 @@
 #include <cstdlib>
 
 #include "lib.hpp"
+
 using std::getline;
 using std::string;
 using std::cout;
@@ -92,16 +93,24 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
 
         // File name
         string filename;
-        const char* filemode;
-        if(regex_search(src_cmd_line,match,regex("(>+)\\s*([^!| \t\n]+)"))){
-          string mode_str = string_strip(match[1]);
-          if(mode_str == ">>"){
-            filemode = "a";
+        const char* filemode = "";
+        int pub_pipe = -1;
+        if(regex_search(src_cmd_line,match,regex("(>+)(\\s*)([^!| \t\n]+)"))){
+          string sep = match[2];
+          if(sep.empty()){
+            // for public pipe
+            pub_pipe = std::stoi(match[3]);
           }
           else{
-            filemode = "w";
+            string mode_str = string_strip(match[1]);
+            if(mode_str == ">>"){
+              filemode = "a";
+            }
+            else{
+              filemode = "w";
+            }
+            filename = string_strip(match[3]);
           }
-          filename = string_strip(match[2]);
           cmd_line = string_strip(match.prefix()) + " " + string(match.suffix());
         }
         else{
@@ -121,6 +130,9 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
 #ifdef DEBUG
         debug("cmd:"+cmd);
         debug("arg:"+arg_line);
+        stringstream ss;
+        ss << "public pipe:" << pub_pipe;
+        debug(ss.str());
         debug("filename:"+filename);
         debug("filemode:"+string(filemode));
         debug("suffix:"+suffix);
