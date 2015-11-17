@@ -6,6 +6,8 @@
 #include <cstdlib>
 
 #include "lib.hpp"
+#include "conn_mgmt.hpp"
+#include "lock.hpp"
 
 using std::getline;
 using std::string;
@@ -17,6 +19,7 @@ using std::regex_search;
 using std::smatch;
 using std::getenv;
 
+extern ConnClientEntry* client_p;
 
 void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
   // init
@@ -26,11 +29,11 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
   fd_reopen(FD_STDIN,fd_in);
   fd_reopen(FD_STDOUT,fd_out);
   fd_reopen(FD_STDERR,fd_err);
-
   cout << "****************************************" << endl
     << "** Welcome to the information server. **" << endl
     << "****************************************" << endl;
   string str;
+  unblock_sig_msg();
   while(true){
     cout << "% ";
     if(!getline(cin,str)){

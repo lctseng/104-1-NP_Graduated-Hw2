@@ -33,6 +33,7 @@ void clean_up(){
   conn_mgmt_cleanup();
 }
 Sigfunc old_intr_handler;
+ConnClientEntry* client_p;
 
 // Signal handler for SIGINT
 void handle_sigint(int sig) {
@@ -52,6 +53,7 @@ int main(int argc,char** argv){
   register_sigchld();
   lock_init();
   conn_mgmt_init();
+  block_sig_msg();
   // change to base path
   chdir(BASE_DIR);
 #ifndef CONSOLE
@@ -92,7 +94,6 @@ int main(int argc,char** argv){
     if(clientfd<0){
       debug("Accept error!");
     }
-    ConnClientEntry& client_e = p_mgmt->register_new_client(clientfd,&cli_addr);
     if((pid=fork())<0){
       clean_up();
       err_abort("Fork error!");
@@ -102,6 +103,9 @@ int main(int argc,char** argv){
       close(clientfd);
     }
     else{
+      conn_lock();
+      client_p = &p_mgmt->register_new_client(clientfd,&cli_addr);
+      conn_unlock();
       // child
       restore_sigchld();
       restore_sigint();
@@ -111,7 +115,7 @@ int main(int argc,char** argv){
       }catch(std::regex_error e){
         debug(e.code()== std::regex_constants::error_escape);
       }
-      client_e.disconnect();
+      client_p->disconnect();
       close(clientfd);
       exit(0);
     }
