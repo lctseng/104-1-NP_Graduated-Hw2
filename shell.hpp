@@ -44,11 +44,24 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
     }
     str = string_strip(str);
     smatch match;
-    if(regex_search(str, regex("^\\s*exit"))){
+    if(regex_search(str, regex("^\\s*exit(\\s+|$)"))){
       break;
     }
     else if(regex_search(str, regex("/"))){
       cout << "/ is forbidden here!" << endl;
+    }
+    else if(regex_search(str, regex("^\\s*who(\\s+|$)"))){
+      cout << "<ID>\t<nickname>\t<IP/port>\t<indicate me>" << endl;
+      for(ConnClientEntry& ent : client_p->p_mgmt->clients){
+        if(ent.is_valid()){
+          cout << ent.id << '\t' << ent.nick << '\t' << ent.ip << '/' << ent.port << '\t';
+          if(&ent == client_p){
+            // me
+            cout << "<-me";
+          }
+          cout << endl;
+        }
+      }
     }
     else if(regex_search(str,match,regex("^\\s*printenv(\\s+|$)"))){
       string name = string_strip(match.suffix());
