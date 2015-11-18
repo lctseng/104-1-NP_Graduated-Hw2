@@ -50,14 +50,29 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
     else if(regex_search(str, regex("/"))){
       cout << "/ is forbidden here!" << endl;
     }
-    else if(regex_search(str,match,regex("^\\s*printenv(\\s*|$)"))){
+    else if(regex_search(str,match,regex("^\\s*printenv(\\s+|$)"))){
       string name = string_strip(match.suffix());
       if(!name.empty()){
         cout << name << '=' << getenv(name.c_str()) << endl;
       }
       decrease_pipe_counter_and_close();
     }
-    else if(regex_search(str,match,regex("^\\s*setenv(\\s*|$)"))){
+    else if(regex_search(str,match,regex("^\\s*name(\\s+|$)"))){
+      string new_name = string_strip(match.suffix());
+      if(!new_name.empty()){
+        if(client_p->change_name(new_name)){
+          // already broadcasted 
+        }
+        else{
+          cout << "*** User '" << new_name <<"' already exists. ***" << endl;
+        }
+      }
+      else{
+        cout << "*** Cannot use an empty name ***" << endl;
+      }
+      decrease_pipe_counter_and_close();
+    }
+    else if(regex_search(str,match,regex("^\\s*setenv(\\s+|$)"))){
       string remain = match.suffix();
       if(regex_search(remain,match,regex("([^ \t\n]*)\\s+([^ \t\n]*)"))){
         string var = match[1];

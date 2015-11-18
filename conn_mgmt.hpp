@@ -78,15 +78,19 @@ class ConnClientEntry{
 public:
 
   ConnClientEntry()
-  :fd(-1),
-  id(-1),
-  pid(-1),
-  nick("(no name)")
+  :id(-1)
   {
+    reset_entry();
   }
 
   bool is_valid() const{
     return fd >= 0;
+  }
+  
+  void reset_entry(){
+    fd = -1;
+    pid = -1;
+    strcpy(nick,"(no name)");
   }
 
   void disconnect();
@@ -103,6 +107,8 @@ public:
     kill(pid,L_SIGMSG);
     return ret;
   }
+  // change name
+  bool change_name(const string& name);
 
   ConnMsgQueue msg_q;
   ConnMgmt* p_mgmt;
@@ -150,6 +156,17 @@ public:
       }
     }
   }
+  // check name exist in list
+  bool check_name_exist(const string& name){
+    for(int i=0;i<=max_id;i++){
+      if(clients[i].is_valid()){
+        if(name == clients[i].nick){
+          return true;
+        }
+      }   
+    }
+    return false;
+  }
   //-- internal
   // find empty slot
   ConnClientEntry& find_empty_slot(){
@@ -181,8 +198,25 @@ void ConnClientEntry::disconnect(){
     stringstream ss;
     ss << "*** User '" << nick <<"' left. ***\n";
     p_mgmt->send_broadcast_message(ss.str());
-    fd = -1;
+    reset_entry();
+}
+// change name
+bool ConnClientEntry::change_name(const string& name){
+  if(p_mgmt->check_name_exist(name)){
+    return false; // name exists
   }
+  else{
+    // change it
+    strncpy(nick,name.c_str(),MAX_NICK_LEN-1);
+    nick[MAX_NICK_LEN-1] = '\0';
+    // broadcast
+    stringstream ss;
+    ss << "*** User from " << ip << '/' << port << " is named '" << nick << "'. ***\n";
+    p_mgmt->send_broadcast_message(ss.str());
+    
+    return true;
+  }
+}
 
 static int shm_id;
 ConnMgmt* p_mgmt;
