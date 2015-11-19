@@ -19,7 +19,7 @@
 #define MAX_UNREAD 10
 #define MAX_CLIENT 40
 #define MAX_MSG_LEN 1024
-#define MAX_NICK_LEN 1024
+#define MAX_NICK_LEN 100
 
 
 using std::cerr;
@@ -233,7 +233,7 @@ void ConnClientEntry::send_yell_message(const string& msg){
     ss << "*** " << nick <<" yelled ***: " << msg << "\n";
     const string& send_msg = ss.str();
     for(ConnClientEntry& ent : p_mgmt->clients){
-      if(ent.is_valid() && this != &ent){
+      if(ent.is_valid()){
         ent.add_message(-1,send_msg);
       }
     }
