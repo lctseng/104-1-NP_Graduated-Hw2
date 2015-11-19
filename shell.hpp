@@ -272,21 +272,26 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
             }
             record_pipe_info(stdout_pipe_count,stdout_pipe);
             record_pipe_info(stderr_pipe_count,stderr_pipe);
+            if(pub_write_pipe >= 0){
+              stringstream ss;
+              ss << "*** " << client_p->nick <<" (#" << client_p->id <<") just piped '" << str << "' ***\n";
+              conn_lock();
+              p_mgmt->send_broadcast_message(ss.str());
+              conn_unlock();
+            }
+            if(pub_read_pipe >= 0){
+              stringstream ss;
+              ss << "*** " << client_p->nick <<" (#" << client_p->id <<") just received via '" << str << "' ***\n";
+              conn_lock();
+              p_mgmt->send_broadcast_message(ss.str());
+              conn_unlock();
+            }
           }
           // close error pipe
           error_pipe.close_read();
           // wait for child
           waitpid(pid,nullptr,0);
-#ifdef DEBUG
-          // read public pipe
-          cout << "Opening pipe..." << endl;
-          int fd = open("/tmp/NP_HW2_PIPE_0116057_1",0 | O_NONBLOCK);
-          cout << fd << endl;
-          char buf[100];
-          cout << "Read from pub.." << endl;;
-          read(fd,buf,100);
-          cout << "pub:" << buf << endl;
-#endif
+          // close an used public pipe
           if(pub_read_pipe >= 0){
             pipe_lock();
             PubPipe::p_mgmt->clear_pipe(pub_read_pipe);
@@ -316,6 +321,7 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
                 int fd = PubPipe::p_mgmt->open_write(pub_write_pipe);
                 pipe_unlock();
                 if(fd >= 0){
+                  // public write pipe success
                   fd_reopen(FD_STDOUT,fd);
                 }
                 else{

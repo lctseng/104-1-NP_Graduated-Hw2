@@ -55,16 +55,6 @@ public:
     pipe_to_open = -1;
     for(PubPipeEntry& ent : pipes){
       if(ent.valid){
-#ifdef DEBUG
-        char buf[100];
-        int n = read(ent.fake_read_fd,buf,100);
-        if(n > 0){
-          cout << "Remain:" << buf << endl; 
-        }
-        else{
-          cout << "Empty Pipe" << endl;
-        }
-#endif
         close(ent.fake_read_fd);
         ent.clear(false);
       }
@@ -121,13 +111,9 @@ int PubPipeEntry::open_write(){
     // fifo created 
     // open fake reader
     p_mgmt->pipe_to_open = id;
-    cerr << "Notify:" << p_mgmt->master_pid << endl;
     kill(p_mgmt->master_pid,L_SIGPIPE);
     // open a write end fd 
-    debug("Fake pipe opened");
-    int fd = open(name, 1 );
-    debug(fd);
-    return fd;
+    return open(name, 1 );
   }
   else{
     // create failed
@@ -146,13 +132,9 @@ int PubPipeEntry::open_read(){
     // fifo created 
     // open fake reader
     p_mgmt->pipe_to_open = id;
-    cerr << "Notify:" << p_mgmt->master_pid << endl;
     kill(p_mgmt->master_pid,L_SIGPIPE);
-    // open a write end fd 
-    debug("Fake pipe opened");
-    int fd = open(name, 1 );
-    debug(fd);
-    return fd;
+    // open a read end fd 
+    return open(name, 1 );
   }
   else{
     // create failed
@@ -204,7 +186,6 @@ void signal_pipe_handler(int sig){
     ent.fake_read_fd = -1;
     PubPipe::p_mgmt->pipe_to_close = -1;
   }
-  cerr << "[Server] Pipe Signal Finished" << endl;
 }
 void pub_pipe_mgmt_init(){
   // create shm
