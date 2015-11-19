@@ -10,6 +10,7 @@
 #include "shell.hpp"
 #include "lock.hpp"
 #include "conn_mgmt.hpp"
+#include "pub_pipe_mgmt.hpp"
 
 //#define CONSOLE
 
@@ -31,9 +32,11 @@ void clean_up(){
   cerr << "Cleaning up..." << endl;
   lock_clean_up();
   conn_mgmt_cleanup();
+  pub_pipe_mgmt_cleanup();
 }
 Sigfunc old_intr_handler;
 ConnClientEntry* client_p;
+
 
 // Signal handler for SIGINT
 void handle_sigint(int sig) {
@@ -53,6 +56,7 @@ int main(int argc,char** argv){
   register_sigchld();
   lock_init();
   conn_mgmt_init();
+  pub_pipe_mgmt_init();
   block_sig_msg();
   // change to base path
   chdir(BASE_DIR);
@@ -115,7 +119,9 @@ int main(int argc,char** argv){
       }catch(std::regex_error e){
         debug(e.code()== std::regex_constants::error_escape);
       }
+      conn_lock();
       client_p->disconnect();
+      conn_unlock();
       close(clientfd);
       exit(0);
     }

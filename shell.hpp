@@ -7,6 +7,7 @@
 
 #include "lib.hpp"
 #include "conn_mgmt.hpp"
+#include "pub_pipe_mgmt.hpp"
 #include "lock.hpp"
 
 using std::getline;
@@ -53,6 +54,7 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
     // who
     else if(regex_search(str, regex("^\\s*who(\\s+|$)"))){
       cout << "<ID>\t<nickname>\t<IP/port>\t<indicate me>" << endl;
+      conn_lock();
       for(ConnClientEntry& ent : client_p->p_mgmt->clients){
         if(ent.is_valid()){
           cout << ent.id << '\t' << ent.nick << '\t' << ent.ip << '/' << ent.port << '\t';
@@ -63,17 +65,20 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
           cout << endl;
         }
       }
+      conn_unlock();
     }
     // change name
     else if(regex_search(str,match,regex("^\\s*name(\\s+|$)"))){
       string new_name = string_strip(match.suffix());
       if(!new_name.empty()){
+        conn_lock();
         if(client_p->change_name(new_name)){
           // already broadcasted 
         }
         else{
           cout << "*** User '" << new_name <<"' already exists. ***" << endl;
         }
+        conn_unlock();
       }
       else{
         cout << "*** Cannot use an empty name ***" << endl;
@@ -85,17 +90,21 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
       int tell_id = std::stoi(match[1]);
       string msg = string_strip(match.suffix());
       if(!msg.empty()){
+        conn_lock();
         if(!client_p->send_tell_message(tell_id,msg)){
           // failure
           cout << "*** Error: user #" << match[1] <<" does not exist yet. ***" << endl;
         }
+        conn_unlock();
       }
     }
     // yell, not yell to self
     else if(regex_search(str,match,regex("^\\s*yell(\\s|$)"))){
       string msg = string_strip(match.suffix());
       if(!msg.empty()){
+        conn_lock();
         client_p->send_yell_message(msg);
+        conn_unlock();
       }
     }
 
