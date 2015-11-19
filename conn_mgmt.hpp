@@ -94,12 +94,9 @@ public:
   }
 
   void disconnect();
-  // send message
-  void send_message_by_name(const string& name,const string& msg);
+  // send tell
+  bool send_tell_message(int tell_id,const string& str); 
 
-  // send message by id
-  void send_message_by_id(int id,const string& msg);
-  
   // send yell
   void send_yell_message(const string& msg);
 
@@ -187,21 +184,31 @@ public:
 };
 
 // For ConnClientEntry
-// send message
-void ConnClientEntry::send_message_by_name(const string& name,const string& msg){
-
-}
-
-// send message by id
-void ConnClientEntry::send_message_by_id(int id,const string& msg){
-
-}
 // disconnect
 void ConnClientEntry::disconnect(){
     stringstream ss;
     ss << "*** User '" << nick <<"' left. ***\n";
     p_mgmt->send_broadcast_message(ss.str());
     reset_entry();
+}
+// send tell
+bool ConnClientEntry::send_tell_message(int tell_id,const string& msg){
+  // search for id
+  // check range
+  if(tell_id < 1 || tell_id > MAX_CLIENT){
+    return false;
+  }
+  ConnClientEntry& ent = p_mgmt->clients[tell_id-1];
+  if(ent.is_valid()){
+    stringstream ss;
+    ss << "*** " << nick <<" told you ***: " << msg << "\n";
+    ent.add_message(id,ss.str());
+    return true;
+  }
+  else{
+    // target client not existed
+    return false;
+  }
 }
 // change name
 bool ConnClientEntry::change_name(const string& name){

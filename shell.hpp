@@ -80,6 +80,17 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
       }
     }
     // messaging
+    // tell
+    else if(regex_search(str,match,regex("^\\s*tell\\s+(\\d+)(\\s|$)"))){
+      int tell_id = std::stoi(match[1]);
+      string msg = string_strip(match.suffix());
+      if(!msg.empty()){
+        if(!client_p->send_tell_message(tell_id,msg)){
+          // failure
+          cout << "*** Error: user #" << match[1] <<" does not exist yet. ***" << endl;
+        }
+      }
+    }
     // yell, not yell to self
     else if(regex_search(str,match,regex("^\\s*yell(\\s|$)"))){
       string msg = string_strip(match.suffix());
