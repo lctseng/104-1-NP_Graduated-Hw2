@@ -130,8 +130,8 @@ bool exec_cmd(const string& filename,const string& arg_list){
 }
 
 // pipe-related
-void exit_unknown_cmd(UnixPipe& pipe){
-  pipe.writeline("error");
+void exit_error(UnixPipe& pipe,const char* msg){
+  pipe.writeline(msg);
   pipe.close_write();
   abort();
 }

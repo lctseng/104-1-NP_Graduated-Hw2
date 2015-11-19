@@ -241,10 +241,18 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
           }
           // read from error_pipe, if 0 readed. child is successfully exited
           error_pipe.close_write();
-          string result = error_pipe.getline();
+          string result = string_strip(error_pipe.getline());
           if(!result.empty()){
             // error
-            printf("Unknown command: [%s].\n",src_cmd_line.c_str());
+            if(result=="unknown"){
+              printf("Unknown command: [%s].\n",src_cmd_line.c_str());
+            }
+            else if(result=="pipe existed"){ // write pipe existed
+              cout << "*** Error: the pipe #" << pub_write_pipe <<" already exists. ***" << endl;
+            }
+            else if(result=="pipe not exist"){ // read pipe not existed
+              cout << "*** Error: the pipe #" << pub_read_pipe <<" does not exist yet. *** " << endl;
+            }
             // restore pipe
             if(first){
               pipe_pool.push_front(UnixPipe(false));
@@ -287,6 +295,10 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
                 // open with numbered-pipe 
                 fd_reopen(FD_STDOUT,stdout_pipe.write_fd);
               }
+              else if (pub_write_pipe > 0){
+                exit_error(error_pipe,"pipe existed");
+
+              }
             }
             else{
               // open with next pipe 
@@ -318,7 +330,7 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
           // Exec
           exec_cmd(cmd,arg_line);
           // if you are here, means error occurs
-          exit_unknown_cmd(error_pipe);
+          exit_error(error_pipe,"unknown");
         }
         // prepare for next cut
         cut_string = std::move(next_cut);
