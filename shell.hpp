@@ -277,6 +277,21 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
           error_pipe.close_read();
           // wait for child
           waitpid(pid,nullptr,0);
+#ifdef DEBUG
+          // read public pipe
+          cout << "Opening pipe..." << endl;
+          int fd = open("/tmp/NP_HW2_PIPE_0116057_1",0 | O_NONBLOCK);
+          cout << fd << endl;
+          char buf[100];
+          cout << "Read from pub.." << endl;;
+          read(fd,buf,100);
+          cout << "pub:" << buf << endl;
+#endif
+          if(pub_read_pipe >= 0){
+            pipe_lock();
+            PubPipe::p_mgmt->clear_pipe(pub_read_pipe);
+            pipe_unlock();
+          }
         }else{
           // child
           // close last pipe writing
@@ -295,8 +310,17 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
                 // open with numbered-pipe 
                 fd_reopen(FD_STDOUT,stdout_pipe.write_fd);
               }
-              else if (pub_write_pipe > 0){
-                exit_error(error_pipe,"pipe existed");
+              else if (pub_write_pipe >= 0){
+                // try to create to public pipe
+                pipe_lock();
+                int fd = PubPipe::p_mgmt->open_write(pub_write_pipe);
+                pipe_unlock();
+                if(fd >= 0){
+                  fd_reopen(FD_STDOUT,fd);
+                }
+                else{
+                  exit_error(error_pipe,"pipe existed");
+                }
 
               }
             }
@@ -312,14 +336,29 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
           }
           // first process open numbered pipe
           if(first){
-            // the first process, try to open numbered pipe
-            UnixPipe& n_pipe = pipe_pool[0];
-            if(!n_pipe.is_read_closed()){
-              n_pipe.close_write();
-              fd_reopen(FD_STDIN,n_pipe.read_fd); 
+            if(pub_read_pipe >= 0){
+              pipe_lock();
+              int fd = PubPipe::p_mgmt->open_read(pub_read_pipe);
+              pipe_unlock();
+              if(fd >= 0){
+                fd_reopen(FD_STDIN,fd);
+              }
+              else{
+                exit_error(error_pipe,"pipe not exist");
+              }
+              close_pipe_larger_than(0);
             }
-            // close other high-count pipe
-            close_pipe_larger_than(1);
+            else{
+              // the first process, try to open numbered pipe
+              UnixPipe& n_pipe = pipe_pool[0];
+              if(!n_pipe.is_read_closed()){
+                n_pipe.close_write();
+                fd_reopen(FD_STDIN,n_pipe.read_fd); 
+              }
+              // close other high-count pipe
+              close_pipe_larger_than(1);
+
+            }
           }
           else{
             // non-first, open last pipe

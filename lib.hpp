@@ -19,7 +19,8 @@
 #define FD_STDOUT 1
 #define FD_STDERR 2
 
-#define L_SIGMSG SIGUSR2
+#define L_SIGMSG SIGUSR1
+#define L_SIGPIPE SIGUSR2
 
 using std::cerr;
 using std::endl;

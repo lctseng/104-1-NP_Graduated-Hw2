@@ -30,9 +30,9 @@ using std::getline;
 // should called by master thread only once
 void clean_up(){
   cerr << "Cleaning up..." << endl;
-  lock_clean_up();
   conn_mgmt_cleanup();
   pub_pipe_mgmt_cleanup();
+  lock_clean_up();
 }
 Sigfunc old_intr_handler;
 ConnClientEntry* client_p;
