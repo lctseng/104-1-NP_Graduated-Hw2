@@ -99,7 +99,10 @@ public:
 
   // send message by id
   void send_message_by_id(int id,const string& msg);
- 
+  
+  // send yell
+  void send_yell_message(const string& msg);
+
   // add message to self
   bool add_message(int from_id,const string& msg){
     bool ret = msg_q.add_message(from_id,msg);
@@ -217,6 +220,19 @@ bool ConnClientEntry::change_name(const string& name){
     return true;
   }
 }
+// send yell
+void ConnClientEntry::send_yell_message(const string& msg){
+    stringstream ss;
+    ss << "*** " << nick <<" yelled ***: " << msg << "\n";
+    const string& send_msg = ss.str();
+    for(ConnClientEntry& ent : p_mgmt->clients){
+      if(ent.is_valid() && this != &ent){
+        ent.add_message(-1,send_msg);
+      }
+    }
+}
+
+// Global Variable
 
 static int shm_id;
 ConnMgmt* p_mgmt;

@@ -50,6 +50,7 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
     else if(regex_search(str, regex("/"))){
       cout << "/ is forbidden here!" << endl;
     }
+    // who
     else if(regex_search(str, regex("^\\s*who(\\s+|$)"))){
       cout << "<ID>\t<nickname>\t<IP/port>\t<indicate me>" << endl;
       for(ConnClientEntry& ent : client_p->p_mgmt->clients){
@@ -63,13 +64,7 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
         }
       }
     }
-    else if(regex_search(str,match,regex("^\\s*printenv(\\s+|$)"))){
-      string name = string_strip(match.suffix());
-      if(!name.empty()){
-        cout << name << '=' << getenv(name.c_str()) << endl;
-      }
-      decrease_pipe_counter_and_close();
-    }
+    // change name
     else if(regex_search(str,match,regex("^\\s*name(\\s+|$)"))){
       string new_name = string_strip(match.suffix());
       if(!new_name.empty()){
@@ -83,7 +78,22 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
       else{
         cout << "*** Cannot use an empty name ***" << endl;
       }
-      decrease_pipe_counter_and_close();
+    }
+    // messaging
+    // yell, not yell to self
+    else if(regex_search(str,match,regex("^\\s*yell(\\s|$)"))){
+      string msg = string_strip(match.suffix());
+      if(!msg.empty()){
+        client_p->send_yell_message(msg);
+      }
+    }
+
+    // Env related
+    else if(regex_search(str,match,regex("^\\s*printenv(\\s+|$)"))){
+      string name = string_strip(match.suffix());
+      if(!name.empty()){
+        cout << name << '=' << getenv(name.c_str()) << endl;
+      }
     }
     else if(regex_search(str,match,regex("^\\s*setenv(\\s+|$)"))){
       string remain = match.suffix();
@@ -92,7 +102,6 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
         string name = match[2];
         setenv(var.c_str(),name.c_str(),1);
       }
-      decrease_pipe_counter_and_close();
     }
     else{
       UnixPipe next_pipe(false); 
