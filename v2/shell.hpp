@@ -25,6 +25,7 @@ extern ConnClientEntry* client_p;
 void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
   // init
   init_pipe_pool();
+  clearenv();
   setenv("PATH","bin:.",1);
   // set all stdin/stdout/stderr to socket
   fd_reopen(FD_STDIN,fd_in);
