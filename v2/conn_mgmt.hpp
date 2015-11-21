@@ -10,6 +10,7 @@
 #include <sys/shm.h>
 #include <arpa/inet.h>
 
+#define DEMO
 
 #include "lib.hpp"
 #include "lock.hpp"
@@ -136,8 +137,13 @@ public:
     // search empty slot
     ConnClientEntry& slot = find_empty_slot();
     // fill info
+#ifndef DEMO
     inet_ntop(AF_INET,&cli_addr->sin_addr,slot.ip,sizeof(slot.ip));
     slot.port = ntohs(cli_addr->sin_port);
+#else
+    strncpy(slot.ip,"CGILAB",sizeof(slot.ip));
+    slot.port = 511;
+#endif
     slot.fd = fd;
     slot.pid = getpid();
 #ifdef DEBUG

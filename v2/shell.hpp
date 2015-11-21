@@ -30,9 +30,9 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
   fd_reopen(FD_STDIN,fd_in);
   fd_reopen(FD_STDOUT,fd_out);
   fd_reopen(FD_STDERR,fd_err);
-  cout << "**************************************************************" << endl
-    << "** Welcome to the information server, myserver.nctu.edu.tw. **" << endl
-    << "**************************************************************" << endl;
+  cout << "****************************************" << endl
+    << "** Welcome to the information server. **" << endl
+    << "****************************************" << endl;
   string str;
   unblock_sig_msg();
   while(true){
@@ -248,10 +248,10 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
               printf("Unknown command: [%s].\n",src_cmd_line.c_str());
             }
             else if(result=="pipe existed"){ // write pipe existed
-              cout << "*** Error: the pipe #" << pub_write_pipe <<" already exists. ***" << endl;
+              cout << "*** Error: public pipe #" << pub_write_pipe <<" already exists. ***" << endl;
             }
             else if(result=="pipe not exist"){ // read pipe not existed
-              cout << "*** Error: the pipe #" << pub_read_pipe <<" does not exist yet. *** " << endl;
+              cout << "*** Error: public pipe #" << pub_read_pipe <<" does not exist yet. *** " << endl;
             }
             // restore pipe
             if(first){
