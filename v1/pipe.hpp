@@ -19,10 +19,6 @@ using std::endl;
 #define PIPE_MAX_READ 65535
 
 
-class UnixPipe;
-// Gobal Variables
-deque<UnixPipe> pipe_pool;
-
 class UnixPipe{
 public:
   UnixPipe(bool real = true){
@@ -96,63 +92,5 @@ public:
   int read_fd,write_fd;
 
 };
-
-void init_pipe_pool(){
-  pipe_pool = deque<UnixPipe>();
-  pipe_pool.push_back(UnixPipe(false));
-}
-
-UnixPipe create_numbered_pipe(int count){
-  int current_max = (int)pipe_pool.size() - 1;
-  if(current_max < count){ // new pipe needed
-    return UnixPipe();
-  }
-  else{
-    // check of that pipe is alive
-    if(pipe_pool[count].is_alive()){
-      return pipe_pool[count];
-    }
-    else{
-      return UnixPipe();
-    }
-  }
-}
-void record_pipe_info(int count,const UnixPipe& pipe){
-  if(count >= 0){
-    int current_max = (int)pipe_pool.size() - 1;
-    if(current_max < count){
-      // fill pipe pool
-      for(int i=current_max+1;i<count;i++){
-
-        pipe_pool.push_back(UnixPipe(false));
-      }
-      // create on that
-      pipe_pool.push_back(pipe);
-    }
-    else{
-      // check of that pipe is alive
-      if(!pipe_pool[count].is_alive()){
-        pipe_pool[count] = pipe;
-      }
-    }
-  }
-}
-
-void close_pipe_larger_than(int count){
-  if(pipe_pool.size()>1){
-    for(int i=count+1;i<pipe_pool.size();i++){
-      pipe_pool[i].close();
-    }
-  }
-}
-
-void decrease_pipe_counter_and_close(){
-  if(!pipe_pool.empty()){
-    pipe_pool.pop_back();
-    if(!pipe_pool.empty()){
-      pipe_pool[0].close();
-    }
-  }
-}
 
 #endif

@@ -35,6 +35,7 @@ extern ConnMgmt conn_mgmt;
 // should called by master thread only once
 void clean_up(){
   cerr << "Cleaning up..." << endl;
+  pub_pipe_mgmt_cleanup();
   conn_mgmt.disconnect_all();
 }
 
@@ -54,6 +55,7 @@ void restore_sigint(){
 }
 int main(int argc,char** argv){
   register_sigint();
+  pub_pipe_mgmt_init();
   // change to base path
   chdir(BASE_DIR);
   // get port

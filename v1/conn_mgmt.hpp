@@ -2,12 +2,15 @@
 #define __CONN_MGMT_HPP_INCLUDED
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <deque>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <arpa/inet.h>
+
 
 #define DEMO
 
@@ -22,10 +25,77 @@
 using std::cerr;
 using std::endl;
 using std::stringstream;
+using std::vector;
+using std::deque;
 
 class ConnMgmt;
 class ConnClientEntry;
 bool run_command(ConnClientEntry& client,const string& str);
+
+
+class EnvVariable{
+public:
+  EnvVariable(const string& key,const string& value = "")
+  :key(key),
+  value(value)
+  {
+  }
+
+  void apply(){
+    setenv(key.c_str(),value.c_str(),1); 
+  }
+
+  string key;
+  string value;
+};
+
+class EnvVariables{
+public:
+
+  EnvVariables(){
+    reset();
+  }
+
+  string get_value(const string& key){
+    for(EnvVariable& env: data){
+      if(env.key == key){
+        return env.value;
+      } 
+    }
+    return "";
+  }
+
+  void set_value(const string& key,const string& value){
+    bool found = false;
+    for(EnvVariable& env: data){
+      if(env.key == key){
+        env.value = value;
+        found = true;
+      } 
+    }
+    if(!found){
+      data.emplace_back(key,value);
+    }
+    
+  }
+
+  void apply_all(){
+    clearenv();
+    for(EnvVariable& env: data){
+      env.apply();
+    }
+  }
+
+  void reset(){
+    data.clear();
+    // basic env: PATH
+    data.emplace_back("PATH","bin:.");
+  }
+
+  vector<EnvVariable> data;
+};
+
+
 
 class ConnClientEntry{
 public:
@@ -67,6 +137,8 @@ public:
     fd = new_fd;
     p_fin = new ifdstream(fd);
     p_fout = new ofdstream(fd);
+    reset_pipe_pool();
+    env.reset();
   }
 
   // process client
@@ -92,9 +164,76 @@ public:
     }
   }
 
+
+  void reset_pipe_pool(){
+    pipe_pool.clear();
+    pipe_pool.push_back(UnixPipe(false));
+  }
+
+  UnixPipe create_numbered_pipe(int count){
+    int current_max = (int)pipe_pool.size() - 1;
+    if(current_max < count){ // new pipe needed
+      return UnixPipe();
+    }
+    else{
+      // check of that pipe is alive
+      if(pipe_pool[count].is_alive()){
+        return pipe_pool[count];
+      }
+      else{
+        return UnixPipe();
+      }
+    }
+  }
+  void record_pipe_info(int count,const UnixPipe& pipe){
+    if(count >= 0){
+      int current_max = (int)pipe_pool.size() - 1;
+      if(current_max < count){
+        // fill pipe pool
+        for(int i=current_max+1;i<count;i++){
+
+          pipe_pool.push_back(UnixPipe(false));
+        }
+        // create on that
+        pipe_pool.push_back(pipe);
+      }
+      else{
+        // check of that pipe is alive
+        if(!pipe_pool[count].is_alive()){
+          pipe_pool[count] = pipe;
+        }
+      }
+    }
+  }
+
+  void close_pipe_larger_than(int count){
+    if(pipe_pool.size()>1){
+      for(int i=count+1;i<pipe_pool.size();i++){
+        pipe_pool[i].close();
+      }
+    }
+  }
+
+  void decrease_pipe_counter_and_close(){
+    if(!pipe_pool.empty()){
+      pipe_pool.pop_back();
+      if(!pipe_pool.empty()){
+        pipe_pool[0].close();
+      }
+    }
+  }
+
+
+
+
+
+  // Variables
+  deque<UnixPipe> pipe_pool;
+
   ConnMgmt* p_mgmt;
   ifdstream *p_fin;
   ofdstream *p_fout;
+  EnvVariables env;
   char nick[MAX_NICK_LEN];
   char ip[20];
   unsigned short port;

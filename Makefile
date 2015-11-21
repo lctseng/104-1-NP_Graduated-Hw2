@@ -1,5 +1,5 @@
 all: server_v1 server_v2
-server_v1: v1/conn_mgmt.hpp v1/fdstream.hpp v1/lib.hpp v1/pipe.hpp v1/shell.hpp v1/server.cpp 
+server_v1: v1/conn_mgmt.hpp v1/fdstream.hpp v1/lib.hpp v1/pipe.hpp v1/shell.hpp v1/server.cpp v1/pub_pipe_mgmt.hpp 
 	@echo using `g++ --version | grep ^g++ `
 	@GCC_MAJOR=`g++ --version | grep ^g++ | sed 's/^.* //g' | awk -F. '{print $$1}'` ;\
 	GCC_MINOR=`g++ --version | grep ^g++ | sed 's/^.* //g' | awk -F. '{print $$2}'` ;\

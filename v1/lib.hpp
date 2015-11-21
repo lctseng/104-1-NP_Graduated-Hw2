@@ -13,7 +13,7 @@
 
 #include "pipe.hpp"
 
-#define DEBUG
+//#define DEBUG
 
 #define FD_STDIN 0
 #define FD_STDOUT 1
