@@ -8,7 +8,7 @@
 
 #include "fdstream.hpp"
 #include "lib.hpp"
-#include "conn_mgmt.hpp"
+#include "shell.hpp"
 //#include "shell.hpp"
 //#include "lock.hpp"
 //#include "pub_pipe_mgmt.hpp"
@@ -117,8 +117,8 @@ int main(int argc,char** argv){
       if(client.is_valid() && FD_ISSET(client.fd,&r_set)){
         if(!client.process_client()){
           // disconnect
-          client.disconnect();
           FD_CLR(client.fd,&all_set);
+          client.disconnect();
         }
       } 
     }

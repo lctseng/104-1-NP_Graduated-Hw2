@@ -26,7 +26,7 @@ using std::stringstream;
 
 class ConnMgmt;
 class ConnClientEntry;
-
+bool run_command(ConnClientEntry& client,const string& str);
 
 class ConnMsgEntry{
 public:
@@ -115,9 +115,22 @@ public:
   bool process_client(){
     // read a line from client
     string str;
-    getline(*p_fin,str);
-    (*p_fout) << str << endl;
-    return true;
+    if(getline(*p_fin,str)){
+      if(run_command(*this,str)){
+        (*p_fout) << "% ";
+        p_fout->flush();
+        return true;
+      } 
+      else{
+        // client exit
+        return false;
+      }
+      return true;
+    }
+    else{
+      // EOF
+      return false;
+    }
   }
 
   ConnMsgQueue msg_q;
@@ -166,9 +179,16 @@ public:
 #ifdef DEBUG
     cerr << "[Server] New client from: " << slot.ip << "/" << slot.port << ", client id = " << slot.id << ", fd = " << fd << endl;
 #endif
+    // send welcome
+    (*slot.p_fout) <<  "****************************************" << endl
+    << "** Welcome to the information server. **" << endl
+    << "****************************************" << endl;
+    // send notify
     stringstream ss;
     ss << "*** User '(no name)' entered from (" << slot.ip << '/' << slot.port << "). ***\n";
     send_broadcast_message(ss.str());
+    (*slot.p_fout) << "% ";
+    slot.p_fout->flush();
     return slot;
   }
   // send broadcast message
