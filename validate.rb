@@ -3,8 +3,7 @@
 require 'fileutils'
 
 TEST_FILES = {}
-TEST_FILES['test'] = ['test1.txt','test2.txt','test3.txt','test4.txt','test5.txt','test6.txt']
-TEST_FILES['example'] = ['example_test.txt']
+TEST_FILES['test'] = ['test1.txt','test2.txt','test3.txt','test4.txt']
 
 if ARGV.size < 3
   puts "usage: ./validate IP port1 port2"
@@ -20,7 +19,9 @@ TEST_FILES.each do |dir,names|
     puts "Test ##{index+1}"
     path = "#{dir}/#{name}"
     FileUtils.mkdir_p 'tmp'
+    `./cleanup.sh`
     `./client #{ip} #{port1} #{path} > tmp/#{port1}_#{name}.out`
+    `./cleanup.sh`
     `./client #{ip} #{port2} #{path} > tmp/#{port2}_#{name}.out`
     IO.popen "diff tmp/#{port1}_#{name}.out tmp/#{port2}_#{name}.out" do |result|
       while result.gets
