@@ -1,5 +1,5 @@
 *.swp
 *.swo
 tmp/
-server-v1
-server-v2
+server_v1
+server_v2
