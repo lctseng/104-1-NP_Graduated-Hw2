@@ -149,6 +149,7 @@ public:
   ConnMgmt()
   :max_id(0)
   {
+    cout << "Mgmt reset" << endl;
     for(int i=0;i<MAX_CLIENT;i++){
       clients[i].p_mgmt = this;
       clients[i].id = i+1;
@@ -285,4 +286,7 @@ void ConnClientEntry::send_yell_message(const string& msg){
     }
 }
 
+
+// variables
+ConnMgmt conn_mgmt;
 #endif

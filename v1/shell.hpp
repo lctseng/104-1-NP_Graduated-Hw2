@@ -19,22 +19,83 @@ using std::regex_search;
 using std::smatch;
 using std::getenv;
 
+extern ConnMgmt conn_mgmt;
 
-
-bool run_command(ConnClientEntry& client,const string& str){
-  *client.p_fout << "Executing:" << str << endl;
+bool run_command(ConnClientEntry& client,const string& src_str){
+  string str = string_strip(src_str);
+  smatch match;
+  if(regex_search(str, regex("^\\s*exit(\\s+|$)"))){
+    return false;
+  }
+  else if(regex_search(str, regex("/"))){
+    *client.p_fout << "/ is forbidden here!" << endl;
+  }
+  // who
+  else if(regex_search(str, regex("^\\s*who(\\s+|$)"))){
+    *client.p_fout << "<ID>\t<nickname>\t<IP/port>\t<indicate me>" << endl;
+    for(ConnClientEntry& ent : conn_mgmt.clients){
+      if(ent.is_valid()){
+        *client.p_fout << ent.id << '\t' << ent.nick << '\t' << ent.ip << '/' << ent.port << '\t';
+        if(&ent == &client){
+          // me
+          *client.p_fout << "<-me";
+        }
+        *client.p_fout << endl;
+      }
+    }
+  }
+  // change name
+  else if(regex_search(str,match,regex("^\\s*name(\\s+|$)"))){
+    string new_name = string_strip(match.suffix());
+    if(!new_name.empty()){
+      if(client.change_name(new_name)){
+        // already broadcasted 
+      }
+      else{
+        *client.p_fout << "*** User '" << new_name <<"' already exists. ***" << endl;
+      }
+    }
+    else{
+      *client.p_fout << "*** Cannot use an empty name ***" << endl;
+    }
+  }
+  /*
+  // messaging
+  // tell
+  else if(regex_search(str,match,regex("^\\s*tell\\s+(\\d+)(\\s|$)"))){
+    int tell_id = std::stoi(match[1]);
+    string msg = string_strip(match.suffix());
+    if(!msg.empty()){
+      conn_lock();
+      if(!client_p->send_tell_message(tell_id,msg)){
+        // failure
+        cout << "*** Error: user #" << match[1] <<" does not exist yet. ***" << endl;
+      }
+      conn_unlock();
+    }
+  }
+  // yell, not yell to self
+  else if(regex_search(str,match,regex("^\\s*yell(\\s|$)"))){
+    string msg = string_strip(match.suffix());
+    if(!msg.empty()){
+      conn_lock();
+      client_p->send_yell_message(msg);
+      conn_unlock();
+    }
+  }
+  */
   return true;
 }
 /*
-void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
-  // init
-  init_pipe_pool();
-  setenv("PATH","bin:.",1);
-  // set all stdin/stdout/stderr to socket
-  fd_reopen(FD_STDIN,fd_in);
-  fd_reopen(FD_STDOUT,fd_out);
-  fd_reopen(FD_STDERR,fd_err);
-  cout << "****************************************" << endl
+   void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
+    // init
+    init_pipe_pool();
+    setenv("PATH","bin:.",1);
+    // set all stdin/stdout/stderr to socket
+    fd_reopen(FD_STDIN,fd_in);
+    fd_reopen(FD_STDOUT,fd_out);
+    fd_reopen(FD_STDERR,fd_err);
+    cout << "****************************************" << endl
     << "** Welcome to the information server. **" << endl
     << "****************************************" << endl;
   string str;

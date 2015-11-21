@@ -29,7 +29,7 @@ using std::getline;
 
 // Globals
 Sigfunc old_intr_handler;
-ConnMgmt conn_mgmt;
+extern ConnMgmt conn_mgmt;
 
 // cleanup, include all ipc-related item 
 // should called by master thread only once
@@ -43,7 +43,6 @@ void clean_up(){
 void handle_sigint(int sig) {
   clean_up();
   cerr << "Exiting..." << endl;
-  conn_mgmt.~ConnMgmt();
   exit(1);
 }
 
@@ -54,8 +53,6 @@ void restore_sigint(){
   signal(SIGINT,old_intr_handler);
 }
 int main(int argc,char** argv){
-  conn_mgmt = ConnMgmt();
-
   register_sigint();
   // change to base path
   chdir(BASE_DIR);
