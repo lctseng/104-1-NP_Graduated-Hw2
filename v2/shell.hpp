@@ -113,7 +113,11 @@ void run_shell(int fd_in = 0,int fd_out = 1 ,int fd_err = 2){
     else if(regex_search(str,match,regex("^\\s*printenv(\\s+|$)"))){
       string name = string_strip(match.suffix());
       if(!name.empty()){
-        cout << name << '=' << getenv(name.c_str()) << endl;
+        const char* env_val = getenv(name.c_str());
+        if(!env_val){
+          env_val = "";
+        }
+        cout << name << '=' << env_val << endl;
       }
     }
     else if(regex_search(str,match,regex("^\\s*setenv(\\s+|$)"))){
