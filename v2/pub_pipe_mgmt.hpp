@@ -44,7 +44,7 @@ public:
     for(int i=0;i<MAX_PUB_PIPE;i++){
       pipes[i].p_mgmt = this;
       pipes[i].id = i;
-      std::snprintf(pipes[i].name,PIPE_NAME_LEN,"/tmp/NP_HW2_PIPE_0116057_%d",i);
+      std::snprintf(pipes[i].name,PIPE_NAME_LEN,"/tmp/NP_HW2_V2_PIPE_0116057_%d",i);
       pipes[i].clear();
     }
   }
