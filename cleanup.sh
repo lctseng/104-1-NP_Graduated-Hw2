@@ -1,3 +1,3 @@
-#!/bin/sh -v
+#!/bin/sh
 rm -f ras/*.txt
 rm -f ras/baozi
