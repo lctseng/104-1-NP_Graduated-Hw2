@@ -14,7 +14,6 @@
 #include "lib.hpp"
 #include "fdstream.hpp"
 
-#define MAX_UNREAD 10
 #define MAX_CLIENT 40
 #define MAX_MSG_LEN 1024
 #define MAX_NICK_LEN 100
@@ -27,48 +26,6 @@ using std::stringstream;
 class ConnMgmt;
 class ConnClientEntry;
 bool run_command(ConnClientEntry& client,const string& str);
-
-class ConnMsgEntry{
-public:
-  ConnMsgEntry()
-  :from_id(-1)
-  {
-    str[0] = '\0';
-  }
-
-  void set_message(const string& cpp_str){
-    strncpy(str,cpp_str.c_str(),MAX_MSG_LEN);
-    str[MAX_MSG_LEN-1] = '\0';
-  }
-
-  char str[MAX_MSG_LEN];
-  int from_id;
-};
-
-class ConnMsgQueue{
-public:
-  ConnMsgQueue()
-  :size(0)
-  {
-    
-  }
-
-  bool add_message(int from_id,const string& str){
-    if(size >= 10){
-      return false;
-    }
-    else{
-      // set new message
-      ConnMsgEntry& ent = msgs[size++];
-      ent.from_id = from_id;
-      ent.set_message(str);
-      return true;
-    }
-  }
-
-  ConnMsgEntry msgs[MAX_UNREAD];
-  int size;
-};
 
 class ConnClientEntry{
 public:
@@ -99,7 +56,9 @@ public:
 
   // add message to self
   bool add_message(int from_id,const string& msg){
-    return msg_q.add_message(from_id,msg);
+    *p_fout << msg;
+    p_fout->flush();
+    return true;
   }
   // change name
   bool change_name(const string& name);
@@ -133,7 +92,6 @@ public:
     }
   }
 
-  ConnMsgQueue msg_q;
   ConnMgmt* p_mgmt;
   ifdstream *p_fin;
   ofdstream *p_fout;
@@ -186,7 +144,7 @@ public:
     << "****************************************" << endl;
     // send notify
     stringstream ss;
-    ss << "*** User '(no name)' entered from (" << slot.ip << '/' << slot.port << "). ***\n";
+    ss << "*** User '(no name)' entered from " << slot.ip << '/' << slot.port << ". ***\n";
     send_broadcast_message(ss.str());
     (*slot.p_fout) << "% ";
     slot.p_fout->flush();

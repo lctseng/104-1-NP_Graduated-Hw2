@@ -59,31 +59,28 @@ bool run_command(ConnClientEntry& client,const string& src_str){
       *client.p_fout << "*** Cannot use an empty name ***" << endl;
     }
   }
-  /*
+  
   // messaging
   // tell
   else if(regex_search(str,match,regex("^\\s*tell\\s+(\\d+)(\\s|$)"))){
     int tell_id = std::stoi(match[1]);
     string msg = string_strip(match.suffix());
     if(!msg.empty()){
-      conn_lock();
-      if(!client_p->send_tell_message(tell_id,msg)){
+      if(!client.send_tell_message(tell_id,msg)){
         // failure
-        cout << "*** Error: user #" << match[1] <<" does not exist yet. ***" << endl;
+        *client.p_fout << "*** Error: user #" << match[1] <<" does not exist yet. ***" << endl;
       }
-      conn_unlock();
     }
   }
   // yell, not yell to self
   else if(regex_search(str,match,regex("^\\s*yell(\\s|$)"))){
     string msg = string_strip(match.suffix());
     if(!msg.empty()){
-      conn_lock();
-      client_p->send_yell_message(msg);
-      conn_unlock();
+      client.send_yell_message(msg);
     }
   }
-  */
+ 
+
   return true;
 }
 /*
