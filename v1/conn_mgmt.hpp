@@ -12,7 +12,7 @@
 #include <arpa/inet.h>
 
 
-#define DEMO
+//#define DEMO
 #define ERREXIST 1
 #define ERRDUP 2
 

@@ -10,7 +10,7 @@
 #include <sys/shm.h>
 #include <arpa/inet.h>
 
-#define DEMO
+//#define DEMO
 
 #include "lib.hpp"
 #include "lock.hpp"
