@@ -13,7 +13,9 @@ using namespace std;
 
 int main(){
 
+  mknod("TEST", S_IFIFO | 0666, 0);
   int fd = open("TEST",0 | O_NONBLOCK);
-  sleep(10);
+  cout << "Opened" << endl;
+  sleep(100);
   return 0;
 }

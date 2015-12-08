@@ -10,16 +10,20 @@
 
 using namespace std;
 
-int main(){
+int main(int argc,char** argv){
 
-  mknod("TEST", S_IFIFO | 0666, 0);
   int fd = open("TEST",1 | O_NONBLOCK);
   char buf[100];
   int i=0;
-  while(1){
-    i++;
-    sleep(1);
-    sprintf(buf,"%d\n",i);
-    write(fd,buf,strlen(buf));
+  if(argc > 1){
+    while(1){
+      i++;
+      sleep(1);
+      sprintf(buf,"%d\n",i);
+      write(fd,buf,strlen(buf));
+    } 
+  }
+  else{
+    sleep(100); 
   }
 }
