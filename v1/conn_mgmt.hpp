@@ -13,6 +13,8 @@
 
 
 #define DEMO
+#define ERREXIST 1
+#define ERRDUP 2
 
 #include "lib.hpp"
 #include "fdstream.hpp"
@@ -115,6 +117,7 @@ public:
     strcpy(nick,"(no name)");
     p_fin = nullptr;
     p_fout = nullptr;
+    change_count = 0;
   }
 
   void disconnect();
@@ -131,7 +134,7 @@ public:
     return true;
   }
   // change name
-  bool change_name(const string& name);
+  int change_name(const string& name);
 
   void init_client(int new_fd){
     fd = new_fd;
@@ -234,6 +237,7 @@ public:
   ifdstream *p_fin;
   ofdstream *p_fout;
   EnvVariables env;
+  int change_count;
   char nick[MAX_NICK_LEN];
   char ip[20];
   unsigned short port;
@@ -355,9 +359,12 @@ bool ConnClientEntry::send_tell_message(int tell_id,const string& msg){
   }
 }
 // change name
-bool ConnClientEntry::change_name(const string& name){
+int ConnClientEntry::change_name(const string& name){
   if(p_mgmt->check_name_exist(name)){
-    return false; // name exists
+    return ERREXIST; // name exists
+  }
+  else if(change_count >= 3){
+    return ERRDUP;
   }
   else{
     // change it
@@ -367,8 +374,8 @@ bool ConnClientEntry::change_name(const string& name){
     stringstream ss;
     ss << "*** User from " << ip << '/' << port << " is named '" << nick << "'. ***\n";
     p_mgmt->send_broadcast_message(ss.str());
-    
-    return true;
+    ++change_count; 
+    return 0;
   }
 }
 // send yell

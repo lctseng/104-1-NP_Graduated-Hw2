@@ -9,6 +9,7 @@
 #include "conn_mgmt.hpp"
 #include "pub_pipe_mgmt.hpp"
 
+
 using std::getline;
 using std::string;
 using std::cout;
@@ -52,11 +53,17 @@ bool run_command(ConnClientEntry& client,const string& src_str){
   else if(regex_search(str,match,regex("^\\s*name(\\s+|$)"))){
     string new_name = string_strip(match.suffix());
     if(!new_name.empty()){
-      if(client.change_name(new_name)){
+      int ret = client.change_name(new_name);
+      if(!ret){
         // already broadcasted 
       }
       else{
-        *client.p_fout << "*** User '" << new_name <<"' already exists. ***" << endl;
+        if(ret == ERREXIST){
+          *client.p_fout << "*** User '" << new_name <<"' already exists. ***" << endl;
+        }
+        else if(ret == ERRDUP){
+          *client.p_fout << "*** Name '" << new_name <<"' is so ugly. ***" << endl;
+        }
       }
     }
     else{
