@@ -146,9 +146,7 @@ public:
 #endif
     slot.fd = fd;
     slot.pid = getpid();
-#ifdef DEBUG
     cerr << "[Server] New client from: " << slot.ip << "/" << slot.port << ", client id = " << slot.id << endl;
-#endif
     stringstream ss;
     ss << "*** User '(no name)' entered from " << slot.ip << '/' << slot.port << ". ***\n";
     send_broadcast_message(ss.str());
